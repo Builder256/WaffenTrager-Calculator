@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WaffenCalculator</title>
+</head>
+
+<body>
+    <label for="price">課金金額</label>
+    <input type="number" id="price">
+    <button id="calculate">計算</button>
+    <div id="">
+        <p>計算結果：<span id="result"></span></p>
+    </div>
+
+    <script>
+        document.querySelector('#calculate').addEventListener('click', calculate);
+
+        function calculate() {
+            const price = document.querySelector('#price').value;
+            const resultArea = document.querySelector('#result');
+            resultArea.textContent = '';
+
+            const result = calculateMainRewardProbability(price);
+            resultArea.textContent = result.probability;
+        }
+
+
+        function calculateMainRewardProbability(budget) {
+            // 各ガチャの設定
+            const gachaA = {
+                costKey: 1, // 1回に必要なカギ
+                mainRewardProbability: 0.03, // メイン報酬の確率
+                smallKeyRewardProbability: 1, // 小さなカギの確率
+            };
+
+            const gachaB = {
+                costCard: 1, // 1回に必要なカード
+                mainRewardProbability: 0.001, // メイン報酬の確率
+                keyRewardProbability: 0.03, // カギの確率
+                smallKeyRewardProbability: 1, // 小さなカギの確率
+                cardCost: 316, // カード1枚の価格
+            };
+
+            const smallKeysForKey = 10; // 小さなカギ10個でカギ1個に交換
+
+            // 予算内で購入できるカード数
+            const maxCards = Math.floor(budget / gachaB.cardCost);
+
+            // ガチャBをすべて回した後に得られるカギと小さなカギを考慮
+            const keysFromGachaB = maxCards * gachaB.keyRewardProbability;
+            const smallKeysFromGachaB = maxCards * gachaB.smallKeyRewardProbability;
+            const maxKeysFromSmallKeys = Math.floor(smallKeysFromGachaB / smallKeysForKey);
+
+            // ガチャAで回せる回数
+            const totalKeys = keysFromGachaB + maxKeysFromSmallKeys;
+            const gachaARounds = totalKeys / gachaA.costKey;
+
+            // メイン報酬の期待値
+            const gachaBMainRewardExpected = maxCards * gachaB.mainRewardProbability;
+            const gachaAMainRewardExpected = gachaARounds * gachaA.mainRewardProbability;
+
+            // 合計のメイン報酬期待値
+            const totalMainRewardExpected = gachaBMainRewardExpected + gachaAMainRewardExpected;
+
+            // メイン報酬が得られる確率（1 - 出ない確率）
+            const probability = 1 - Math.exp(-totalMainRewardExpected);
+
+            return {
+                gachaARounds: gachaARounds.toFixed(2),
+                gachaBRounds: maxCards,
+                totalMainRewardExpected: totalMainRewardExpected.toFixed(4),
+                probability: (probability * 100).toFixed(2) + "%",
+            };
+        }
+
+        // 例: 予算10,000円で計算
+        // const budget = 45000;
+        // const result = calculateMainRewardProbability(budget);
+
+        // console.log("ガチャAを回せる回数:", result.gachaARounds);
+        // console.log("ガチャBを回せる回数:", result.gachaBRounds);
+        // console.log("メイン報酬の期待値:", result.totalMainRewardExpected);
+        // console.log("メイン報酬が得られる確率:", result.probability);
+
+
+
+    </script>
+</body>
+
+</html>
